@@ -50,7 +50,7 @@ impl fmt::Display for OrderBook {
             write!(f, "Orderbook empty")
         } else {
             write!(f, "\tASK\n\n").unwrap();
-            write!(f, "PRICE\tAMOUNT\n").unwrap();
+            write!(f, "Price\tSize\n").unwrap();
 
             for (price, amount) in self.asks.iter().rev() {
                 write!(f, "{}\t{}\n", price, amount).unwrap();
@@ -71,6 +71,7 @@ fn main() {
     assert!(&orderbook.is_empty());
 
     //println!("{}", orderbook);
+    //
 
     orderbook.add_ask(39, 100);
     orderbook.add_ask(50, 100);
