@@ -3,6 +3,7 @@ use std::fmt;
 
 type Price = u32;
 type Size = u32;
+type Total = u32;
 
 enum OrderType {
     Bid,
@@ -42,6 +43,26 @@ impl OrderBook {
     fn add_ask(&mut self, price: Price, amount: Size) {
         self.add(price, amount, OrderType::Ask);
     }
+
+    fn total_asks(&self) -> BTreeMap<Price, Total> {
+        let mut ask_total: BTreeMap<Price, Total> = BTreeMap::new();
+        let mut total = 0;
+        for (price, amount) in self.asks.iter() {
+            total += amount;
+            *ask_total.entry(*price).or_insert(0) += total;
+        }
+        ask_total
+    }
+
+    fn total_bids(&self) -> BTreeMap<Price, Total> {
+        let mut bid_total: BTreeMap<Price, Total> = BTreeMap::new();
+        let mut total = 0;
+        for (price, amount) in self.bids.iter().rev() {
+            total += amount;
+            *bid_total.entry(*price).or_insert(0) += total;
+        }
+        bid_total
+    }
 }
 
 impl fmt::Display for OrderBook {
@@ -50,15 +71,19 @@ impl fmt::Display for OrderBook {
             write!(f, "Orderbook empty")
         } else {
             write!(f, "\tASK\n\n").unwrap();
-            write!(f, "Price\tSize\n").unwrap();
+            write!(f, "Price\tSize\tTotal\n").unwrap();
+
+            let bid_total = self.total_asks();
 
             for (price, amount) in self.asks.iter().rev() {
-                write!(f, "{}\t{}\n", price, amount).unwrap();
+                write!(f, "{}\t{}\t{}\n", price, amount, bid_total[price]).unwrap();
             }
-            write!(f, "-----------------\n").unwrap();
+            write!(f, "---------------------\n").unwrap();
+
+            let ask_total = self.total_bids();
 
             for (price, amount) in self.bids.iter().rev() {
-                write!(f, "{}\t{}\n", price, amount).unwrap();
+                write!(f, "{}\t{}\t{}\n", price, amount, ask_total[price]).unwrap();
             }
             write!(f, "\n\tBID\n")
         }
@@ -73,13 +98,13 @@ fn main() {
     //println!("{}", orderbook);
     //
 
-    orderbook.add_ask(39, 100);
-    orderbook.add_ask(50, 100);
-    orderbook.add_ask(40, 100);
+    orderbook.add_ask(8723, 100);
+    orderbook.add_ask(8881, 125);
+    orderbook.add_ask(9900, 100);
 
-    orderbook.add_bid(35, 100);
-    orderbook.add_bid(10, 100);
-    orderbook.add_bid(37, 100);
+    orderbook.add_bid(8720, 174);
+    orderbook.add_bid(8600, 100);
+    orderbook.add_bid(8499, 100);
 
     println!("{}", orderbook);
 }
