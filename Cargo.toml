@@ -1,5 +1,5 @@
 [package]
-name = "BOME"
+name = "bome"
 version = "0.1.0"
 authors = ["dgnsrekt <dgnsrekt@pm.me>"]
 edition = "2018"
