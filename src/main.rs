@@ -44,6 +44,59 @@ impl OrderBook {
         self.add(price, amount, OrderType::Ask);
     }
 
+    fn clear_key(&mut self, price: Price, order_type: OrderType) {
+        match order_type {
+            OrderType::Bid => {
+                if self.bids[&price] < 1 {
+                    self.bids.remove(&price);
+                } else {
+                    panic!("Cannot clear keys.")
+                }
+            }
+            OrderType::Ask => {
+                if self.asks[&price] < 1 {
+                    self.asks.remove(&price);
+                } else {
+                    panic!("Cannot clear keys.")
+                }
+            }
+        }
+    }
+
+    fn remove(&mut self, price: Price, amount: Size, order_type: OrderType) -> Size {
+        match order_type {
+            OrderType::Bid => {
+                if let Some(x) = self.bids.get_mut(&price) {
+                    *x -= amount;
+                } else {
+                    panic!("No bids to remove from {}", &price);
+                }
+                return *self.bids.get(&price).unwrap();
+            }
+            OrderType::Ask => {
+                if let Some(x) = self.asks.get_mut(&price) {
+                    *x -= amount;
+                } else {
+                    panic!("No asks to remove from {}", &price);
+                }
+                return *self.asks.get(&price).unwrap();
+            }
+        };
+    }
+
+    fn remove_bid(&mut self, price: Price, amount: Size) {
+        let remainder = self.remove(price, amount, OrderType::Bid);
+        if remainder < 1 {
+            self.clear_key(price, OrderType::Bid);
+        }
+    }
+    fn remove_ask(&mut self, price: Price, amount: Size) {
+        let remainder = self.remove(price, amount, OrderType::Ask);
+        if remainder < 1 {
+            self.clear_key(price, OrderType::Ask);
+        }
+    }
+
     fn total_asks(&self) -> BTreeMap<Price, Total> {
         let mut ask_total: BTreeMap<Price, Total> = BTreeMap::new();
         let mut total = 0;
@@ -63,6 +116,18 @@ impl OrderBook {
         }
         bid_total
     }
+
+    fn best_bid(&self) -> (Price, Size) {
+        let (p, s) = self.bids.iter().rev().next().unwrap();
+        (*p, *s)
+    }
+
+    fn best_ask(&self) -> (Price, Size) {
+        let (p, s) = self.asks.iter().next().unwrap();
+        (*p, *s)
+    }
+
+    // fn buy(&self, price: Price, amount: Size)
 }
 
 impl fmt::Display for OrderBook {
@@ -95,8 +160,7 @@ fn main() {
 
     assert!(&orderbook.is_empty());
 
-    //println!("{}", orderbook);
-    //
+    println!("{}", orderbook);
 
     orderbook.add_ask(8723, 100);
     orderbook.add_ask(8881, 125);
@@ -107,4 +171,11 @@ fn main() {
     orderbook.add_bid(8499, 100);
 
     println!("{}", orderbook);
+    println!("{:?}", orderbook.best_ask());
+    println!("{:?}", orderbook.best_bid());
+
+    //orderbook.remove_ask(8723, 100);
+    //orderbook.remove_bid(8720, 74);
+
+    //println!("{}", orderbook);
 }
