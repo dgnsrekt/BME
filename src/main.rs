@@ -84,16 +84,43 @@ impl OrderBook {
         };
     }
 
+    fn query_orders(&self, price: Price) -> Option<Size> {
+        if let Some(query) = self.bids.get(&price) {
+            return Some(*query);
+        }
+        if let Some(query) = self.asks.get(&price) {
+            return Some(*query);
+        }
+        None
+    }
+
     fn remove_bid(&mut self, price: Price, amount: Size) {
-        let remainder = self.remove(price, amount, OrderType::Bid);
-        if remainder < 1 {
-            self.clear_key(price, OrderType::Bid);
+        if let Some(query) = &self.query_orders(price) {
+            if amount <= *query {
+                let remainder = self.remove(price, amount, OrderType::Bid);
+                if remainder < 1 {
+                    self.clear_key(price, OrderType::Bid);
+                }
+            } else {
+                panic!()
+            }
+        } else {
+            panic!()
         }
     }
+
     fn remove_ask(&mut self, price: Price, amount: Size) {
-        let remainder = self.remove(price, amount, OrderType::Ask);
-        if remainder < 1 {
-            self.clear_key(price, OrderType::Ask);
+        if let Some(query) = &self.query_orders(price) {
+            if amount <= *query {
+                let remainder = self.remove(price, amount, OrderType::Ask);
+                if remainder < 1 {
+                    self.clear_key(price, OrderType::Ask);
+                }
+            } else {
+                panic!()
+            }
+        } else {
+            panic!()
         }
     }
 
@@ -171,11 +198,13 @@ fn main() {
     orderbook.add_bid(8499, 100);
 
     println!("{}", orderbook);
-    println!("{:?}", orderbook.best_ask());
-    println!("{:?}", orderbook.best_bid());
+    println!("best ask{:?}", orderbook.best_ask());
+    println!("best bid{:?}", orderbook.best_bid());
 
-    //orderbook.remove_ask(8723, 100);
-    //orderbook.remove_bid(8720, 74);
+    println!("{:?}", orderbook.query_orders(8721));
 
-    //println!("{}", orderbook);
+    orderbook.remove_ask(8723, 100);
+    orderbook.remove_bid(8720, 173);
+
+    println!("{}", orderbook);
 }
